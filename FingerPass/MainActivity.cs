@@ -13,6 +13,12 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System;
+using Android.Telephony;
+using Android.Content.PM;
+using Android.Support.V4.App;
+using System.IO;
+using Java.Security;
+using Android.Util;
 
 namespace FingerPass
 {
@@ -20,7 +26,6 @@ namespace FingerPass
     public class MainActivity : Activity
     {
         TcpClient client;
-        SslStream sslStream;
 
         public bool haveFPPermission(Context context) {
             Android.Content.PM.Permission permissionResult = ContextCompat.CheckSelfPermission(context, Manifest.Permission.UseFingerprint);
@@ -69,114 +74,72 @@ namespace FingerPass
             return false;
         }
 
-        private bool Handshake(string login, string password, out SslStreamRW sslStreamRw, out string message) {
-            sslStreamRw=null;
-            message = "Error:\nUnknown reason";
-            try
-            {
-                string result, salt, rounds, server_rsa_open_key;
-                string device_rsa_close_key = "=====DEVICE RSA TEST KEY=====";
-                client = new TcpClient();
-                client.SendTimeout = 10000;
-                try
-                {
-                    client.Connect("fingerpass.ru", 6284);
-                }
-                catch
-                {
-                    message = "Error:\nCan't connect to server";
-                    client.Close();
-                    return false;
-                }
-                sslStreamRw = new SslStreamRW(client, "fingerpass.ru");
-
-
-                //string pass_hash = HashFuncs.PBKDF2_SHA256_GetHash()
-
-                if (!sslStreamRw.WriteString("<HANDSHAKE>")) return false;
-                if (!sslStreamRw.WriteString(login)) return false;
-                if (!sslStreamRw.WriteString(Build.Brand+" "+Build.Model)) return false;
-                if (!sslStreamRw.ReadString(out salt)) { message = "Error:\n"+sslStreamRw.DisconnectionReason; return false; }
-                if (!sslStreamRw.ReadString(out rounds)) { message = "Error:\n" + sslStreamRw.DisconnectionReason; return false; }
-
-                if (!sslStreamRw.WriteString(HashFuncs.PBKDF2Sha256GetBytes(32, password, salt, Int32.Parse(rounds)))) return false;
-                if (!sslStreamRw.ReadString(out server_rsa_open_key)) { message = "Error:\n" + sslStreamRw.DisconnectionReason; return false; }
-                if (!sslStreamRw.WriteString(device_rsa_close_key)) return false;
-                if (!sslStreamRw.ReadString(out result)) { message = "Error:\n" + sslStreamRw.DisconnectionReason; return false; }
-                if (result == "<ACCEPTED>")
-                {
-                    message = "Device is assigned";
-                    sslStreamRw.Disconnect();
-                    return true;
-                }
-                else {
-                    sslStreamRw.DisconnectNoMessage();
-                    return false;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error reading message:\n" + e.Message);
-                if (e.InnerException != null)
-                {
-                    Console.WriteLine("Inner exception: {0}", e.InnerException.Message);
-                }
-                sslStreamRw.DisconnectNoMessage();
-                return false;
-            }
-        }
-
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             
-            // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
-
             
-
-            // Get our button from the layout resource,
-            // and attach an event to it
-            Button button = FindViewById<Button>(Resource.Id.CheckCompat);
+            
+            Button assignButton = FindViewById<Button>(Resource.Id.Assign);
+            Button auth = FindViewById<Button>(Resource.Id.Auth);
             TextView info = FindViewById<TextView>(Resource.Id.InfoView);
-            EditText login = FindViewById<EditText>(Resource.Id.LoginEdit);
-            EditText password = FindViewById<EditText>(Resource.Id.PasswordEdit);
 
             info.Text = "";
 
             string output = "";
             if (isReady(ref output))
             {
-                info.Text += output;
                 info.Text += "\nDevice is ready!";
 
-                button.Text = "Assign device";
+                bool assigned;
 
-                button.Click += delegate {
-                    string assignLogin = login.Text;
-                    string assignPassword = password.Text;
-                    info.Text = "Loading...";
-                    //button.Enabled = false;
-                    Task.Factory.StartNew(() => {
-                        SslStreamRW sslStreamRw;
-                        string message;
-                        if (Handshake(assignLogin, assignPassword, out sslStreamRw, out message))
-                        { }
-                        info.Text = message;
-                        //button.Enabled = false;
-                    });
+                string filename = "user.config.cfg";
+                var documentsPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+                var filePath = Path.Combine(documentsPath, filename);
+
+                using (FileStream fs = File.Open(filePath, FileMode.OpenOrCreate)) {
+                    try
+                    {
+                        StreamReader sr = new StreamReader(fs);
+                        string login = sr.ReadLine();
+                        info.Text += "\nLogin: " + login;
+                        //info.Text += "\nServer Key: " + sr.ReadLine();
+                        KeyStore sKeyStore = KeyStore.GetInstance("AndroidKeyStore");
+                        sKeyStore.Load(null);
+                        if (sKeyStore.ContainsAlias(login))
+                        {   
+                            info.Text += "\nDevice Key: "+Convert.ToBase64String(sKeyStore.GetCertificate(login).PublicKey.GetEncoded());
+                        }
+                        assigned = true;
+                        info.Text += "\nAssigned";
+                    }
+                    catch (Exception e)
+                    {
+                        assigned = false;
+                        info.Text += "\nNot assigned";
+                    }
+                }
+
+                assignButton.Click += delegate {
+                    var m_activity = new Intent(this, typeof(AssignActivity));
+                    this.StartActivity(m_activity);
                 };
 
+                auth.Click += delegate {
+                    var m_activity = new Intent(this, typeof(Auth));
+                    this.StartActivity(m_activity);
+                };
             }
             else
             {
                 info.Text += output;
                 info.Text += "\nDevice is NOT ready!";
 
-                button.Text = "Exit";
+                assignButton.Text = "@string/close";
 
-                button.Click += delegate {
+                assignButton.Click += delegate {
                     Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
                 };
             }

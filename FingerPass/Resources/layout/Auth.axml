@@ -6,31 +6,24 @@
     <TextView
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:layout_width="match_parent"
-        android:layout_height="395.5dp"
-        android:id="@+id/InfoView"
+        android:layout_height="440.0dp"
+        android:id="@+id/Message"
         android:layout_marginTop="0.0dp"
         android:text="m"
         android:layout_gravity="center"
         android:gravity="center"
         android:layout_marginBottom="0.0dp"
-        android:scrollbars="vertical" />
+        android:scrollbars="vertical"
+        android:textSize="8dp" />
     <Button
-        android:id="@+id/Assign"
+        android:id="@+id/Send_auth"
         android:layout_width="262.0dp"
         android:layout_height="wrap_content"
-        android:text="@string/assign"
+        android:text="@string/auth"
         android:gravity="center"
         android:layout_gravity="center"
         android:layout_marginRight="0.0dp"
         android:layout_marginLeft="0.0dp"
         android:layoutDirection="ltr"
         android:layout_marginTop="19.5dp" />
-    <Button
-        android:text="@string/auth"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/Auth"
-        android:width="262.0dp"
-        android:gravity="center"
-        android:layout_gravity="center" />
 </LinearLayout>

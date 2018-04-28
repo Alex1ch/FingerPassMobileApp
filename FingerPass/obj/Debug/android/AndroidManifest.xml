@@ -4,7 +4,10 @@
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.USE_FINGERPRINT" />
-  <application android:allowBackup="true" android:label="@string/app_name" android:name="android.app.Application" android:icon="@mipmap/icon" android:debuggable="true">
+  <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+  <application android:allowBackup="true" android:label="@string/app_name" android:name="android.app.Application" android:debuggable="true">
+    <activity android:label="Auth" android:name="md5c53ccc5d59c9b7ec46518d14442feecd.Auth" />
+    <activity android:icon="@mipmap/icon" android:label="FingerPassAssign" android:name="md5c53ccc5d59c9b7ec46518d14442feecd.AssignActivity" />
     <activity android:icon="@mipmap/icon" android:label="FingerPass" android:name="md5c53ccc5d59c9b7ec46518d14442feecd.MainActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />

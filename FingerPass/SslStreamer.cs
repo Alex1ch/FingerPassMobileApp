@@ -134,8 +134,8 @@ namespace FingerPass
             }
             byte[] message = Encoding.UTF8.GetBytes(line);
             byte[] concat = new byte[2 + message.Length];
-            concat[0] = (byte)(line.Length >> 8);
-            concat[1] = (byte)(line.Length);
+            concat[0] = (byte)(message.Length >> 8);
+            concat[1] = (byte)(message.Length);
             Buffer.BlockCopy(message, 0, concat, 2, message.Length);
             try
             {

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="hello">Hello World, Click Me!</string>
+  <string name="auth">Authenticate</string>
+  <string name="assign">Assign device</string>
+  <string name="close">Close</string>
   <string name="app_name">FingerPass</string>
 </resources>

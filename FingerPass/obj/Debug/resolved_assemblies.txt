@@ -1,5 +1,4 @@
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\android\assets\FingerPass.dll
-C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\android\assets\BouncyCastle.Crypto.dll
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\android\assets\Java.Interop.dll
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\android\assets\Mono.Android.dll
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\android\assets\mscorlib.dll

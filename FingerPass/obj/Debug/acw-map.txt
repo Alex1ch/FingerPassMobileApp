@@ -1,3 +1,11 @@
+FingerPass.Auth, FingerPass;md5c53ccc5d59c9b7ec46518d14442feecd.Auth
+FingerPass.Auth, FingerPass, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null;md5c53ccc5d59c9b7ec46518d14442feecd.Auth
+FingerPass.Auth;md5c53ccc5d59c9b7ec46518d14442feecd.Auth
+fingerpass.Auth;md5c53ccc5d59c9b7ec46518d14442feecd.Auth
+FingerPass.AssignActivity, FingerPass;md5c53ccc5d59c9b7ec46518d14442feecd.AssignActivity
+FingerPass.AssignActivity, FingerPass, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null;md5c53ccc5d59c9b7ec46518d14442feecd.AssignActivity
+FingerPass.AssignActivity;md5c53ccc5d59c9b7ec46518d14442feecd.AssignActivity
+fingerpass.AssignActivity;md5c53ccc5d59c9b7ec46518d14442feecd.AssignActivity
 FingerPass.MainActivity, FingerPass;md5c53ccc5d59c9b7ec46518d14442feecd.MainActivity
 FingerPass.MainActivity, FingerPass, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null;md5c53ccc5d59c9b7ec46518d14442feecd.MainActivity
 FingerPass.MainActivity;md5c53ccc5d59c9b7ec46518d14442feecd.MainActivity
