@@ -105,15 +105,16 @@ namespace FingerPass
                         StreamReader sr = new StreamReader(fs);
                         string login = sr.ReadLine();
                         info.Text += "\nLogin: " + login;
-                        //info.Text += "\nServer Key: " + sr.ReadLine();
-                        KeyStore sKeyStore = KeyStore.GetInstance("AndroidKeyStore");
-                        sKeyStore.Load(null);
-                        if (sKeyStore.ContainsAlias(login))
-                        {   
-                            info.Text += "\nDevice Key: "+Convert.ToBase64String(sKeyStore.GetCertificate(login).PublicKey.GetEncoded());
+                        if (login != "")
+                        {
+                            assigned = true;
+                            info.Text += "\nAssigned";
                         }
-                        assigned = true;
-                        info.Text += "\nAssigned";
+                        else
+                        {
+                            assigned = false;
+                            info.Text += "\nNot assigned";
+                        }
                     }
                     catch (Exception e)
                     {
