@@ -6,24 +6,22 @@
     <TextView
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:layout_width="match_parent"
-        android:layout_height="440.0dp"
+        android:layout_height="438.5dp"
         android:id="@+id/Message"
         android:layout_marginTop="0.0dp"
-        android:text="m"
         android:layout_gravity="center"
         android:gravity="center"
         android:layout_marginBottom="0.0dp"
-        android:scrollbars="vertical"
-        android:textSize="8dp" />
+        android:scrollbars="vertical" />
     <Button
         android:id="@+id/Send_auth"
         android:layout_width="262.0dp"
         android:layout_height="wrap_content"
-        android:text="@string/auth"
+        android:text="@string/retry"
         android:gravity="center"
         android:layout_gravity="center"
         android:layout_marginRight="0.0dp"
         android:layout_marginLeft="0.0dp"
         android:layoutDirection="ltr"
-        android:layout_marginTop="19.5dp" />
+        android:layout_marginBottom="30dp" />
 </LinearLayout>

@@ -2,7 +2,7 @@
 <xs:schema xmlns:android="http://schemas.android.com/apk/res/android" attributeFormDefault="qualified" targetNamespace="http://schemas.android.com/apk/res/android" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:annotation>
     <xs:documentation>v23</xs:documentation>
-    <xs:documentation>30.04.2018 23:50:28</xs:documentation>
+    <xs:documentation>08.05.2018 19:04:44</xs:documentation>
   </xs:annotation>
   <xs:attribute name="accessibilityLiveRegion">
     <xs:annotation>
@@ -3603,6 +3603,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -3646,6 +3647,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -4253,6 +4255,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -4780,6 +4783,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -5857,6 +5861,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -6149,6 +6154,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -10840,6 +10846,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -10883,6 +10890,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -11492,6 +11500,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -11535,6 +11544,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -11578,6 +11588,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -16598,6 +16609,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -17072,6 +17084,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -18288,6 +18301,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -20743,6 +20757,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -20943,6 +20958,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -21200,6 +21216,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -21893,6 +21910,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -23791,6 +23809,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -25745,6 +25764,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -26725,6 +26745,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -30116,6 +30137,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -31379,6 +31401,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -32553,6 +32576,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -34205,6 +34229,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -34248,6 +34273,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -37337,6 +37363,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -37380,6 +37407,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -39509,6 +39537,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -39655,6 +39684,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />
@@ -40781,6 +40811,7 @@
             <xs:enumeration value="@string/assign" />
             <xs:enumeration value="@string/auth" />
             <xs:enumeration value="@string/close" />
+            <xs:enumeration value="@string/retry" />
             <xs:enumeration value="@android:string/cancel" />
             <xs:enumeration value="@android:string/copy" />
             <xs:enumeration value="@android:string/copyUrl" />

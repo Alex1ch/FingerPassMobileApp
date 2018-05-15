@@ -1,45 +1,40 @@
 ﻿using Android.App;
 using Android.Widget;
 using Android.OS;
-using Android.Content;
-using Android.Hardware.Fingerprints;
-using Android.Support.V4;
-using Android.Support.V4.Hardware.Fingerprint;
 using Android.Support.V4.Content;
 using Android;
-using System.Net.Security;
 using System.Net.Sockets;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System;
 using Android.Telephony;
-using Android.Content.PM;
 using Android.Support.V4.App;
 using System.IO;
 using Java.Security;
 using Android.Security.Keystore;
-using Java.Security.Interfaces;
-using Java.Security.Spec;
-using Java.Math;
 using Javax.Crypto;
-using Android.Util;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Generators;
-using Javax.Crypto.Spec;
+using Android.Hardware.Fingerprints;
+using Android.Support.V4.Hardware.Fingerprint;
 
 namespace FingerPass
 {
-    [Activity(Label = "FingerPassAssign", Icon = "@mipmap/icon")]
+    [Activity(Label = "FingerPass", Icon = "@mipmap/icon")]
     public class AssignActivity : Activity
     {
         static KeyGenerator keyGenerator;
         static string keyAlias;
         static string keyStoreAESReplace = "FingerPass.AES.";
         Cipher cipher;
-        
+        public TextView info;
+        string login;
+        string password;
+        bool active;
+
+        public bool Active { get => active; set => active = value; }
 
         static bool WriteToFile(byte[] iv,string filename) {
             try {
@@ -52,7 +47,7 @@ namespace FingerPass
                 }
             }
             catch {
-                throw new Exception("Can't write IV to file");
+                throw new Exception("Can't write IV to file");
             }
             return true;
         }
@@ -99,51 +94,44 @@ namespace FingerPass
             return keyPairGenerator.GenerateKeyPair();
         }
 
-        string GenerateNewKey()
+        void GenerateKey()
+        {
+            keyGenerator.Init(new KeyGenParameterSpec.Builder(keyStoreAESReplace + keyAlias,
+                KeyStorePurpose.Decrypt | KeyStorePurpose.Encrypt)
+                    .SetEncryptionPaddings(KeyProperties.EncryptionPaddingPkcs7)
+                    .SetBlockModes(KeyProperties.BlockModeCbc)
+                    .SetUserAuthenticationRequired(false)
+                    .Build());
+
+            var key = keyGenerator.GenerateKey();
+
+            cipher = Cipher.GetInstance("AES/CBC/Pkcs7Padding");
+            cipher.Init(Javax.Crypto.CipherMode.EncryptMode, key);
+        }
+
+        string GenerateRSAKey(string server_open_key)
         {
             if (GetKeyGenerator())
             {
-                try
-                {
-                    keyGenerator.Init(new KeyGenParameterSpec.Builder(keyStoreAESReplace+keyAlias,
-                        KeyStorePurpose.Decrypt | KeyStorePurpose.Encrypt)
-                            .SetEncryptionPaddings(KeyProperties.EncryptionPaddingPkcs7)
-                            .SetBlockModes(KeyProperties.BlockModeCbc)
-                            .SetUserAuthenticationRequired(false)
-                            .Build());
+                RSACryptoServiceProvider RSA = new RSACryptoServiceProvider(2048);
+
+                byte[] rsa_private_key = Encoding.UTF8.GetBytes(RSA.ToXmlString(true)+"<SPLIT>"+server_open_key);
+                byte[] rsa_keys_encrypted = cipher.DoFinal(rsa_private_key);
                     
-                    var key = keyGenerator.GenerateKey();
+                var iv =cipher.GetIV();
+                WriteToFile(iv, "aes.iv");
+                WriteToFile(rsa_keys_encrypted, "rsa.enc");
 
-                    RSACryptoServiceProvider RSA = new RSACryptoServiceProvider(2048);
+                cipher.Dispose();
 
-                    cipher = Cipher.GetInstance("AES/CBC/Pkcs7Padding");
-                    cipher.Init(Javax.Crypto.CipherMode.EncryptMode, key);
-
-                    byte[] rsa_private_key = Encoding.UTF8.GetBytes(RSA.ToXmlString(true));
-                    byte[] rsa_key_encrypted = cipher.DoFinal(rsa_private_key);
-                    
-                    var dev_iv =cipher.GetIV();
-                    WriteToFile(dev_iv, "aes.device.iv");
-                    WriteToFile(rsa_key_encrypted, "rsa.device.enc");
-
-                    cipher = Cipher.GetInstance("AES/CBC/Pkcs7Padding");
-                    cipher.Init(Javax.Crypto.CipherMode.EncryptMode, key);
-                    var serv_iv = cipher.GetIV();
-                    WriteToFile(serv_iv, "aes.server.iv");
-
-                    return RSA.ToXmlString(false);
-                }
-                catch (Exception e)
-                {
-                    var exception = String.Format("{0}\n{1}",e.Message,e.InnerException);
-                }
+                return RSA.ToXmlString(false);
             }
             return null;
         }
 
-        private bool Assign(string login, string password, out SslStreamRW sslStreamRw, out string message)
+        public bool Assign(out string message)
         {
-            sslStreamRw = null;
+            SslStreamRW sslStreamRw = null;
             message = "Error:\nUnknown reason";
 
             if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.ReadPhoneState) == Android.Content.PM.Permission.Denied)
@@ -173,8 +161,7 @@ namespace FingerPass
                     return false;
                 }
                 sslStreamRw = new SslStreamRW(client, "fingerpass.ru");
-
-
+                
                 if (!sslStreamRw.WriteString("<HANDSHAKE>")) return false;
                 if (!sslStreamRw.WriteString(login)) return false;
                 if (!sslStreamRw.WriteString(Build.Brand + " " + Build.Model)) return false;
@@ -182,13 +169,20 @@ namespace FingerPass
 
                 if (!sslStreamRw.WriteString(password)) return false;
                 if (!sslStreamRw.ReadString(out server_rsa_open_key)) { message = "Error:\n" + sslStreamRw.DisconnectionReason; return false; }
-
-
-
+                
                 keyAlias = login;
 
-                device_rsa_open_key = GenerateNewKey();
-
+                try
+                {
+                    device_rsa_open_key = GenerateRSAKey(server_rsa_open_key);
+                }
+                catch(Exception e)
+                {
+                    message = "Error:\nCan't generate RSA key\nException: "+e.Message+"\n"+e.InnerException;
+                    sslStreamRw.Disconnect("Device can't generate RSA key");
+                    return false;
+                }
+                
                 if (device_rsa_open_key!=null)
                 {
                     if (!sslStreamRw.WriteString(device_rsa_open_key)) return false;
@@ -200,17 +194,6 @@ namespace FingerPass
                     return false;
                 };
                 
-                try
-                {
-                    WriteToFile(cipher.DoFinal(Encoding.UTF8.GetBytes(server_rsa_open_key)), "rsa.server.enc");
-                }
-                catch
-                {
-                    message = "Error:\nCan't save server RSA key";
-                    sslStreamRw.Disconnect("Device can't save server RSA key");
-                    return false;
-                }
-
                 if (!sslStreamRw.ReadString(out result)) { message = "Error:\n" + sslStreamRw.DisconnectionReason; return false; }
                 if (result == "<ACCEPTED>")
                 {
@@ -264,9 +247,9 @@ namespace FingerPass
             // Get our button from the layout resource,
             // and attach an event to it
             Button button = FindViewById<Button>(Resource.Id.SendAssign);
-            TextView info = FindViewById<TextView>(Resource.Id.InfoView);
-            EditText login = FindViewById<EditText>(Resource.Id.LoginEdit);
-            EditText password = FindViewById<EditText>(Resource.Id.PasswordEdit);
+            info = FindViewById<TextView>(Resource.Id.InfoView);
+            EditText loginEdit = FindViewById<EditText>(Resource.Id.LoginEdit);
+            EditText passwordEdit = FindViewById<EditText>(Resource.Id.PasswordEdit);
 
             info.Text = "";
 
@@ -277,18 +260,29 @@ namespace FingerPass
             button.Text = "Assign device";
 
             button.Click += delegate {
-                string assignLogin = login.Text;
-                string assignPassword = password.Text;
-                info.Text = "Loading...";
-                //button.Enabled = false;
-                Task.Factory.StartNew(() => {
-                    SslStreamRW sslStreamRw;
-                    string message;
-                    if (Assign(assignLogin, assignPassword, out sslStreamRw, out message))
-                    { }
-                    info.Text = message;
-                    //button.Enabled = false;
-                });
+                if (active) return;
+                active = true;
+                login = loginEdit.Text;
+                password = passwordEdit.Text;
+                keyAlias = login;
+
+                if (!GetKeyGenerator()) {
+                    info.Text = "Error in KeyGenerator init";
+                    return;
+                }
+                GenerateKey();
+
+                FingerprintManagerCompat fingerPrintManager = FingerprintManagerCompat.From(this);
+                FingerprintManagerCompat.AuthenticationCallback authenticationCallback = new AssignCallback(this);
+                FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.From(this);
+                var cancellationSignal = new Android.Support.V4.OS.CancellationSignal();
+                    
+                FingerprintManagerCompat.CryptoObject crypto = new FingerprintManagerCompat.CryptoObject(cipher);
+
+                info.Text = "Place your fingertip on the fingerprint scanner to verify your identity";
+                fingerprintManager.Authenticate(crypto, 0, cancellationSignal, authenticationCallback, null);
+
+                cipher = crypto.Cipher;
             };
 
         }

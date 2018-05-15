@@ -131,6 +131,9 @@ namespace FingerPass
 			// aapt resource value: 0x7f040002
 			public const int close = 2130968578;
 			
+			// aapt resource value: 0x7f040004
+			public const int retry = 2130968580;
+			
 			static String()
 			{
 				global::Android.Runtime.ResourceIdManager.UpdateIdValues();

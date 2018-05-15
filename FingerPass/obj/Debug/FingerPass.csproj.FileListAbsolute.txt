@@ -2,7 +2,6 @@ C:\Users\Admin\source\repos\FingerPass\FingerPass\bin\Debug\FingerPass.dll
 C:\Users\Admin\source\repos\FingerPass\FingerPass\bin\Debug\FingerPass.pdb
 C:\Users\Admin\source\repos\FingerPass\FingerPass\bin\Debug\FingerPass.FingerPass.apk
 C:\Users\Admin\source\repos\FingerPass\FingerPass\bin\Debug\FingerPass.FingerPass-Signed.apk
-C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\FingerPass.csprojResolveAssemblyReference.cache
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\FingerPass.csproj.CoreCompileInputs.cache
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\FingerPass.dll
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\FingerPass.pdb
@@ -17,11 +16,12 @@ C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\res\mipmap-xxxhdpi\i
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\R.cs.flag
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\uploadflags.txt
 C:\Users\Admin\source\repos\FingerPass\FingerPass\bin\Debug\Xamarin.Android.Support.v4.dll
-C:\Users\Admin\source\repos\FingerPass\FingerPass\bin\Debug\FingerPass.dll.mdb
-C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\android\assets\FingerPass.dll.mdb
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\res\layout\assign.xml
 C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\res\layout\auth.xml
 C:\Users\Admin\source\repos\FingerPass\FingerPass\bin\Debug\BouncyCastle.Crypto.dll
+C:\Users\Admin\source\repos\FingerPass\FingerPass\bin\Debug\FingerPass.dll.mdb
+C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\android\assets\FingerPass.dll.mdb
+C:\Users\Admin\source\repos\FingerPass\FingerPass\obj\Debug\FingerPass.csprojResolveAssemblyReference.cache
 C:\Users\Admin\source\repos\FingerPass\FingerPass\bin\Debug\FingerPass.dll
 bin\Debug\Mono.Android.pdb
 bin\Debug\mscorlib.pdb

@@ -19,6 +19,7 @@ using Android.Support.V4.App;
 using System.IO;
 using Java.Security;
 using Android.Util;
+[assembly: Application(Theme= "@android:style/Theme.Material.Light.DarkActionBar")]
 
 namespace FingerPass
 {
@@ -26,6 +27,7 @@ namespace FingerPass
     public class MainActivity : Activity
     {
         TcpClient client;
+        bool assigned;
 
         public bool haveFPPermission(Context context) {
             Android.Content.PM.Permission permissionResult = ContextCompat.CheckSelfPermission(context, Manifest.Permission.UseFingerprint);
@@ -75,6 +77,81 @@ namespace FingerPass
         }
 
 
+        protected override void OnResume()
+        {
+            base.OnResume();
+
+            SetContentView(Resource.Layout.Main);
+
+
+            Button assignButton = FindViewById<Button>(Resource.Id.Assign);
+            Button auth = FindViewById<Button>(Resource.Id.Auth);
+            TextView info = FindViewById<TextView>(Resource.Id.InfoView);
+
+            info.Text = "";
+
+            string output = "";
+            if (isReady(ref output))
+            {
+                info.Text += "\nDevice is ready!";
+
+
+                string filename = "username";
+                var documentsPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+                var filePath = Path.Combine(documentsPath, filename);
+                
+                try
+                {
+                    using (FileStream fs = File.Open(filePath, FileMode.Open))
+                    {
+                        StreamReader sr = new StreamReader(fs);
+                        string login = sr.ReadLine();
+                        info.Text += "\nLogin: " + login;
+                        if (login.Length > 1)
+                        {
+                            assigned = true;
+                            info.Text += "\nAssigned";
+                            assignButton.Text = "Reassign device";
+                        }
+                        else
+                        {
+                            assigned = false;
+                            info.Text += "\nNot assigned";
+                            assignButton.Text = "Assign device";
+                        }
+                    }
+                }
+                catch
+                {
+                    assigned = false;
+                    info.Text += "\nNot assigned";
+                    assignButton.Text = "Assign device";
+                }
+
+                assignButton.Click += delegate {
+                    var m_activity = new Intent(this, typeof(AssignActivity));
+                    this.StartActivity(m_activity);
+                };
+
+                auth.Click += delegate {
+                    var m_activity = new Intent(this, typeof(Auth));
+                    this.StartActivity(m_activity);
+                };
+            }
+            else
+            {
+                info.Text += output;
+                info.Text += "\nDevice is NOT ready!";
+
+                assignButton.Text = "@string/close";
+
+                assignButton.Click += delegate {
+                    Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+                };
+            }
+        }
+
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -92,35 +169,37 @@ namespace FingerPass
             if (isReady(ref output))
             {
                 info.Text += "\nDevice is ready!";
+                
 
-                bool assigned;
-
-                string filename = "user.config.cfg";
+                string filename = "username";
                 var documentsPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
                 var filePath = Path.Combine(documentsPath, filename);
-
-                using (FileStream fs = File.Open(filePath, FileMode.OpenOrCreate)) {
-                    try
-                    {
+                
+                try
+                {
+                    using (FileStream fs = File.Open(filePath, FileMode.Open)) {
                         StreamReader sr = new StreamReader(fs);
                         string login = sr.ReadLine();
                         info.Text += "\nLogin: " + login;
-                        if (login != "")
+                        if (login.Length>1)
                         {
                             assigned = true;
                             info.Text += "\nAssigned";
+                            assignButton.Text = "Reassign device";
                         }
                         else
                         {
                             assigned = false;
                             info.Text += "\nNot assigned";
+                            assignButton.Text = "Assign device";
                         }
                     }
-                    catch (Exception e)
-                    {
-                        assigned = false;
-                        info.Text += "\nNot assigned";
-                    }
+                }
+                catch
+                {
+                    assigned = false;
+                    info.Text += "\nNot assigned";
+                    assignButton.Text = "Assign device";
                 }
 
                 assignButton.Click += delegate {

@@ -21,10 +21,14 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Security;
+using System.Threading.Tasks;
+using Android.Hardware.Fingerprints;
+using Android.Support.V4.Hardware.Fingerprint;
+using static Android.Hardware.Fingerprints.FingerprintManager;
 
 namespace FingerPass
 {
-    [Activity(Label = "Auth")]
+    [Activity(Label = "FingerPass")]
     public class Auth : Activity
     {
         string login;
@@ -33,8 +37,18 @@ namespace FingerPass
         KeyStore keyStore;
         string output;
         static string keyStoreAESReplace = "FingerPass.AES.";
-        string serverxml;
+        FingerprintManagerCompat.CryptoObject cryptoObject;
+        TextView message;
+        bool active;
+        Button auth;
 
+
+        public bool Active { get => active; set => active = value; }
+        public RSACryptoServiceProvider Rsa_device { get => rsa_device; set => rsa_device = value; }
+        public RSACryptoServiceProvider Rsa_server { get => rsa_server; set => rsa_server = value; }
+        public string Output { get => output; set => output = value; }
+        public TextView Message { get => message; set => message = value; }
+        public Button AuthButton { get => auth; set => auth = value; }
 
         static byte[] ReadFromFile(string filename)
         {
@@ -56,58 +70,147 @@ namespace FingerPass
             return iv;
         }
 
+        Cipher GetCipher()
+        {
+            keyStore = KeyStore.GetInstance("AndroidKeyStore");
+            keyStore.Load(null);
+            if (!keyStore.IsKeyEntry(keyStoreAESReplace + login))
+            {
+                Output = "Store doesn't contain key";
+                return null;
+            }
 
-        bool GetCipher()
+            var key = keyStore.GetKey(keyStoreAESReplace + login, null);
+
+            Cipher cipher = Cipher.GetInstance("AES/CBC/Pkcs7Padding");
+            var device_iv = ReadFromFile("aes.iv");
+            cipher.Init(Javax.Crypto.CipherMode.DecryptMode, key, new IvParameterSpec(device_iv));
+
+            return cipher;
+        }
+
+        bool GetRSACipher()
         {
             try
             {
-                keyStore = KeyStore.GetInstance("AndroidKeyStore");
-                keyStore.Load(null);
-                if (!(keyStore.ContainsAlias(keyStoreAESReplace+login) &&keyStore.IsKeyEntry(keyStoreAESReplace+login)))
-                {
-                    output = "Store doesn't contain key";
-                    return false;
-                }
+                var cipher = cryptoObject.Cipher;
 
                 var key = keyStore.GetKey(keyStoreAESReplace + login, null);
-
-                Cipher cipher = Cipher.GetInstance("AES/CBC/Pkcs7Padding");
-                var device_iv = ReadFromFile("aes.device.iv");
-                cipher.Init(Javax.Crypto.CipherMode.DecryptMode,key, new IvParameterSpec(device_iv));
-
-                var rsa_dev_enc_key = ReadFromFile("rsa.device.enc");
-                var rsa_dev_decrypted = cipher.DoFinal(rsa_dev_enc_key);
-
-
-                cipher = Cipher.GetInstance("AES/CBC/Pkcs7Padding");
-                var server_iv = ReadFromFile("aes.server.iv");
-                cipher.Init(Javax.Crypto.CipherMode.DecryptMode, key, new IvParameterSpec(server_iv));
-
-                var rsa_serv_enc_key = ReadFromFile("rsa.server.enc");
-                var rsa_serv_decrypted = cipher.DoFinal(rsa_serv_enc_key);
-
-
-                rsa_server = new RSACryptoServiceProvider();
-                rsa_server.FromXmlString(Encoding.UTF8.GetString(rsa_serv_decrypted));
-
-                rsa_device = new RSACryptoServiceProvider();
-                rsa_device.FromXmlString(Encoding.UTF8.GetString(rsa_dev_decrypted));
                 
+                var rsa_enc_key = ReadFromFile("rsa.enc");
+                
+                var rsa_decrypted = cipher.DoFinal(rsa_enc_key);
+
+                var rsa_decrypted_string = Encoding.UTF8.GetString(rsa_decrypted);
+
+                string[] splits = rsa_decrypted_string.Split(new string[] {"<SPLIT>"},StringSplitOptions.None);
+                
+                Rsa_server = new RSACryptoServiceProvider();
+                Rsa_server.FromXmlString(splits[1]);
+
+                Rsa_device = new RSACryptoServiceProvider();
+                Rsa_device.FromXmlString(splits[0]);
+
+                cipher.Dispose();
                 return true;
             }
             catch(Exception e){
-                output = "Error in getting cipher object";
+                Output = "Error in getting cipher object, try to reassign device\nException"+e.Message + "\n" + e.InnerException;
                 return false;
             }
         }
 
 
-        bool Authenticate() {
-            TcpClient tcpClient = new TcpClient("fingerpass.ru", 6284);
-            SslStreamRW sslStreamRW = new SslStreamRW(tcpClient, "fingerpass.ru");
+        public bool Authenticate() {
+            TcpClient client = new TcpClient();
 
-            sslStreamRW.WriteString("<AUTH>");
-            string filename = "user.config.cfg";
+            try
+            {
+                client.Connect("fingerpass.ru", 6284);
+            }
+            catch
+            {
+                Output = "Error:\nCan't connect to server";
+                client.Close();
+                return false;
+            }
+            SslStreamRW sslStreamRW = new SslStreamRW(client, "fingerpass.ru");
+
+            try
+            {
+                sslStreamRW.WriteString("<AUTH>");
+                sslStreamRW.WriteString(login);
+            }
+            catch (Exception e)
+            {
+                Output += "Error in sending message. Exception: " + e.Message;
+                sslStreamRW.Disconnect("Error in sending message. Exception: " + e.Message);
+                return false;
+            }
+            
+            if (!GetRSACipher())
+            {
+                Output = "Can't decrypt Key";
+                sslStreamRW.Disconnect("Device can't decrypt key");
+                cryptoObject.Dispose();
+                return false;
+            }
+            cryptoObject.Dispose();
+
+            byte[] encrypted_from_server, encrypted_to_server;
+            if (!sslStreamRW.ReadBytes(out encrypted_from_server)) { Output = "Error\n" + sslStreamRW.DisconnectionReason; sslStreamRW.DisconnectNoMessage(); return false; }
+
+            try
+            {
+                Output = new BigInteger(encrypted_from_server).ToString() + "\n";
+
+                byte[] decrypted_from_server = Rsa_device.Decrypt(encrypted_from_server, true);
+
+                Rsa_device.Dispose();
+
+                Output += new BigInteger(decrypted_from_server).ToString();
+
+                encrypted_to_server = Rsa_server.Encrypt(decrypted_from_server, true);
+
+                Rsa_server.Dispose();
+            }
+            catch (Exception e)
+            {
+                Output += "Device can't decrypt message. Exception: " + e.Message;
+                sslStreamRW.Disconnect("Device can't decrypt message. Exception: " + e.Message);
+                Rsa_server.Dispose();
+                Rsa_device.Dispose();
+                return false;
+            }
+
+
+            if (!sslStreamRW.WriteBytes(encrypted_to_server)) { Output = "Error:\nCan't send data to server"; sslStreamRW.Disconnect(); return false; }
+
+            string result;
+            if (!sslStreamRW.ReadString(out result)) { Output = "Error\n" + sslStreamRW.DisconnectionReason; sslStreamRW.Disconnect(); return false; }
+
+            if (result=="<APPROVED>") {
+                Output = "Authenticated!";
+                sslStreamRW.Disconnect();
+            }
+
+            return true;
+        }
+
+
+        protected override void OnCreate(Bundle savedInstanceState)
+        {
+            active = true;
+            
+
+            base.OnCreate(savedInstanceState);
+            SetContentView(Resource.Layout.Auth);
+
+            AuthButton = FindViewById<Button>(Resource.Id.Send_auth);
+            Message = FindViewById<TextView>(Resource.Id.Message);
+            AuthButton.Enabled = false;
+
+            string filename = "username";
             var documentsPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
             var filePath = Path.Combine(documentsPath, filename);
 
@@ -117,62 +220,68 @@ namespace FingerPass
                 {
                     StreamReader sr = new StreamReader(fs);
                     login = sr.ReadLine();
-                    sslStreamRW.WriteString(login);
                 }
                 catch
                 {
-                    output = "Can't locally parse";
-                    sslStreamRW.Disconnect("Device can't locally access Server key");
-                    return false;
+                    Output = "Can't parse username, probably, device not assign";
+                    AuthButton.Activated = false;
+                    return;
                 }
             }
-
-            if (!GetCipher())
-            {
-                sslStreamRW.Disconnect("Device can't get key");
-                return false;
-            }
             
-
-            byte[] encrypted_from_server;
-            if (!sslStreamRW.ReadBytes(out encrypted_from_server)) {  output = sslStreamRW.DisconnectionReason; return false; }
-
+            FingerprintManagerCompat fingerPrintManager = FingerprintManagerCompat.From(this);
+            FingerprintManagerCompat.AuthenticationCallback authenticationCallback = new AuthCallback(this);
+            FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.From(this);
+            var cancellationSignal = new Android.Support.V4.OS.CancellationSignal();
             
-            try
+            var cipher = GetCipher();
+
+            if (cipher == null)
             {
-
-                output = new BigInteger(encrypted_from_server).ToString()+"\n";
-
-                byte[] decrypted_from_server = rsa_device.Decrypt(encrypted_from_server,true);
-
-                output += new BigInteger(decrypted_from_server).ToString();
-                
-
-
+                Message.Text = "Can't get aes key cipher";
             }
-            catch(Exception e)
-            {
-                output += "Device can't decrypt message. Exception: " + e.Message;
-                sslStreamRW.Disconnect("Device can't decrypt message. Exception: "+e.Message);
-                return false;
-            }
-            return true;
-        }
 
+            cryptoObject = new FingerprintManagerCompat.CryptoObject(cipher);
 
-        protected override void OnCreate(Bundle savedInstanceState)
-        {
-            base.OnCreate(savedInstanceState);
-            SetContentView(Resource.Layout.Auth);
+            Message.Text = "Place your fingertip on the fingerprint scanner to verify your identity";
+            fingerprintManager.Authenticate(cryptoObject, 0, cancellationSignal, authenticationCallback, null);
 
-            Button auth = FindViewById<Button>(Resource.Id.Send_auth);
-            TextView message = FindViewById<TextView>(Resource.Id.Message);
+            AuthButton.Click += delegate {
+                if (active) return;
+                AuthButton.Enabled = false;
 
-            auth.Click += delegate
-            {
-                Authenticate();
-                message.Text = output;
+                using (FileStream fs = File.Open(filePath, FileMode.Open))
+                {
+                    try
+                    {
+                        StreamReader sr = new StreamReader(fs);
+                        login = sr.ReadLine();
+                    }
+                    catch
+                    {
+                        Output = "Can't parse username, probably, device not assign";
+                        return;
+                    }
+                }
+
+                fingerPrintManager = FingerprintManagerCompat.From(this);
+                authenticationCallback = new AuthCallback(this);
+                fingerprintManager = FingerprintManagerCompat.From(this);
+                cancellationSignal = new Android.Support.V4.OS.CancellationSignal();
+
+                cipher = GetCipher();
+
+                if (cipher == null)
+                {
+                    Message.Text = "Can't get aes key cipher";
+                }
+
+                cryptoObject = new FingerprintManagerCompat.CryptoObject(cipher);
+
+                Message.Text = "Place your fingertip on the fingerprint scanner to verify your identity";
+                fingerprintManager.Authenticate(cryptoObject, 0, cancellationSignal, authenticationCallback, null);
             };
         }
+        
     }
 }

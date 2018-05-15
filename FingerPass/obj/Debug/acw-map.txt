@@ -6,6 +6,14 @@ FingerPass.AssignActivity, FingerPass;md5c53ccc5d59c9b7ec46518d14442feecd.Assign
 FingerPass.AssignActivity, FingerPass, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null;md5c53ccc5d59c9b7ec46518d14442feecd.AssignActivity
 FingerPass.AssignActivity;md5c53ccc5d59c9b7ec46518d14442feecd.AssignActivity
 fingerpass.AssignActivity;md5c53ccc5d59c9b7ec46518d14442feecd.AssignActivity
+FingerPass.AssignCallback, FingerPass;md5c53ccc5d59c9b7ec46518d14442feecd.AssignCallback
+FingerPass.AssignCallback, FingerPass, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null;md5c53ccc5d59c9b7ec46518d14442feecd.AssignCallback
+FingerPass.AssignCallback;md5c53ccc5d59c9b7ec46518d14442feecd.AssignCallback
+fingerpass.AssignCallback;md5c53ccc5d59c9b7ec46518d14442feecd.AssignCallback
+FingerPass.AuthCallback, FingerPass;md5c53ccc5d59c9b7ec46518d14442feecd.AuthCallback
+FingerPass.AuthCallback, FingerPass, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null;md5c53ccc5d59c9b7ec46518d14442feecd.AuthCallback
+FingerPass.AuthCallback;md5c53ccc5d59c9b7ec46518d14442feecd.AuthCallback
+fingerpass.AuthCallback;md5c53ccc5d59c9b7ec46518d14442feecd.AuthCallback
 FingerPass.MainActivity, FingerPass;md5c53ccc5d59c9b7ec46518d14442feecd.MainActivity
 FingerPass.MainActivity, FingerPass, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null;md5c53ccc5d59c9b7ec46518d14442feecd.MainActivity
 FingerPass.MainActivity;md5c53ccc5d59c9b7ec46518d14442feecd.MainActivity
