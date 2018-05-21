@@ -211,6 +211,9 @@ namespace FingerPass
                 if (!sslStreamRw.ReadString(out result)) { message = "Error:\n" + sslStreamRw.DisconnectionReason; return false; }
                 if (result == "<ACCEPTED>")
                 {
+                    string restore;
+                    if (!sslStreamRw.ReadString(out restore)) { message = "Error:\n" + sslStreamRw.DisconnectionReason; return false; }
+                    
                     string filename = "username";
                     var documentsPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
                     var filePath = Path.Combine(documentsPath, filename);
@@ -222,8 +225,7 @@ namespace FingerPass
                         sw.Flush();
                     }
                     
-
-                    message = "Device is assigned";
+                    message = "Device is assigned\nRestore code is:\n"+restore;
                     sslStreamRw.Disconnect();
                     
                     return true;
