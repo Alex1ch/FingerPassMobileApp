@@ -33,8 +33,6 @@ namespace FingerPass
                 if (authActivity.Authenticate())
                 {
                 }
-                if (authActivity.Rsa_device != null) authActivity.Rsa_device.Dispose();
-                if (authActivity.Rsa_server != null) authActivity.Rsa_server.Dispose();
                 authActivity.RunOnUiThread(() => { authActivity.Message.Text = authActivity.Output; });
                 authActivity.Active = false;
                 authActivity.AuthButton.Enabled = true;

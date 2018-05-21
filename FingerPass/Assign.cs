@@ -19,6 +19,12 @@ using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Generators;
 using Android.Hardware.Fingerprints;
 using Android.Support.V4.Hardware.Fingerprint;
+using System.Security.Cryptography.X509Certificates;
+using Org.BouncyCastle.X509;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Asn1;
 
 namespace FingerPass
 {
@@ -83,16 +89,6 @@ namespace FingerPass
             }
         }
         
-        public static AsymmetricCipherKeyPair GetKeyPair()
-        {
-            var randomGenerator = new CryptoApiRandomGenerator();
-            var secureRandom = new Org.BouncyCastle.Security.SecureRandom(randomGenerator);
-            var keyGenerationParameters = new KeyGenerationParameters(secureRandom, 2048);
-
-            var keyPairGenerator = new RsaKeyPairGenerator();
-            keyPairGenerator.Init(keyGenerationParameters);
-            return keyPairGenerator.GenerateKeyPair();
-        }
 
         void GenerateKey()
         {
@@ -109,22 +105,41 @@ namespace FingerPass
             cipher.Init(Javax.Crypto.CipherMode.EncryptMode, key);
         }
 
-        string GenerateRSAKey(string server_open_key)
+        string GenerateRSAKey()
         {
             if (GetKeyGenerator())
             {
-                RSACryptoServiceProvider RSA = new RSACryptoServiceProvider(2048);
+                X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
 
-                byte[] rsa_private_key = Encoding.UTF8.GetBytes(RSA.ToXmlString(true)+"<SPLIT>"+server_open_key);
-                byte[] rsa_keys_encrypted = cipher.DoFinal(rsa_private_key);
+                X509Name CN = new X509Name("CN=" + login + "_cert");
+
+                Gost3410KeyPairGenerator keypairgen = new Gost3410KeyPairGenerator();
+                keypairgen.Init(new KeyGenerationParameters(new Org.BouncyCastle.Security.SecureRandom(new CryptoApiRandomGenerator()), 2048));
+
+                AsymmetricCipherKeyPair keypair = keypairgen.GenerateKeyPair();
+
+                certGen.SetSerialNumber(BigInteger.ProbablePrime(120, new Random()));
+                certGen.SetIssuerDN(CN);
+                certGen.SetNotAfter(DateTime.MaxValue);
+                certGen.SetNotBefore(DateTime.Now.Subtract(new TimeSpan(7, 0, 0, 0)));
+                certGen.SetSubjectDN(CN);
+                certGen.SetPublicKey(keypair.Public);
+                certGen.SetSignatureAlgorithm("GOST3411withGOST3410");
+
+                Org.BouncyCastle.X509.X509Certificate newCert = certGen.Generate(keypair.Private);
+                
+                var gost_encrypted_key = PrivateKeyFactory.EncryptKey("PBEwithSHA1andDES-CBC", login.ToCharArray(), new byte[256], 1, keypair.Private);
+                
+                byte[] gost_keys_encrypted = cipher.DoFinal(gost_encrypted_key);
                     
                 var iv =cipher.GetIV();
                 WriteToFile(iv, "aes.iv");
-                WriteToFile(rsa_keys_encrypted, "rsa.enc");
-
+                
+                WriteToFile(gost_keys_encrypted, "gost.private");
+                
                 cipher.Dispose();
 
-                return RSA.ToXmlString(false);
+                return Convert.ToBase64String(newCert.GetEncoded());
             }
             return null;
         }
@@ -147,7 +162,7 @@ namespace FingerPass
             
             try
             {
-                string result, server_rsa_open_key, device_rsa_open_key = "=====DEVICE RSA TEST KEY=====";
+                string result,  device_open_key = "=====DEVICE RSA TEST KEY=====";
                 TcpClient client = new TcpClient();
                 client.SendTimeout = 10000;
                 try
@@ -168,13 +183,12 @@ namespace FingerPass
                 if (!sslStreamRw.WriteString(((TelephonyManager)GetSystemService(TelephonyService)).DeviceId)) { message = "Error:\nHaven't permissions"; return false; }//((TelephonyManager)GetSystemService(TelephonyService)).DeviceId)
 
                 if (!sslStreamRw.WriteString(password)) return false;
-                if (!sslStreamRw.ReadString(out server_rsa_open_key)) { message = "Error:\n" + sslStreamRw.DisconnectionReason; return false; }
                 
                 keyAlias = login;
 
                 try
                 {
-                    device_rsa_open_key = GenerateRSAKey(server_rsa_open_key);
+                    device_open_key = GenerateRSAKey();
                 }
                 catch(Exception e)
                 {
@@ -183,9 +197,9 @@ namespace FingerPass
                     return false;
                 }
                 
-                if (device_rsa_open_key!=null)
+                if (device_open_key!=null)
                 {
-                    if (!sslStreamRw.WriteString(device_rsa_open_key)) return false;
+                    if (!sslStreamRw.WriteString(device_open_key)) return false;
                 }
                 else
                 {

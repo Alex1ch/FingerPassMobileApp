@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using Android.Hardware.Fingerprints;
 using Android.Support.V4.Hardware.Fingerprint;
 using static Android.Hardware.Fingerprints.FingerprintManager;
+using Org.BouncyCastle.Asn1;
 
 namespace FingerPass
 {
@@ -32,8 +33,6 @@ namespace FingerPass
     public class Auth : Activity
     {
         string login;
-        RSACryptoServiceProvider rsa_device;
-        RSACryptoServiceProvider rsa_server;
         KeyStore keyStore;
         string output;
         static string keyStoreAESReplace = "FingerPass.AES.";
@@ -41,11 +40,9 @@ namespace FingerPass
         TextView message;
         bool active;
         Button auth;
-
+        AsymmetricKeyParameter private_gost_key;
 
         public bool Active { get => active; set => active = value; }
-        public RSACryptoServiceProvider Rsa_device { get => rsa_device; set => rsa_device = value; }
-        public RSACryptoServiceProvider Rsa_server { get => rsa_server; set => rsa_server = value; }
         public string Output { get => output; set => output = value; }
         public TextView Message { get => message; set => message = value; }
         public Button AuthButton { get => auth; set => auth = value; }
@@ -97,20 +94,12 @@ namespace FingerPass
 
                 var key = keyStore.GetKey(keyStoreAESReplace + login, null);
                 
-                var rsa_enc_key = ReadFromFile("rsa.enc");
+                var gost_enc_key = ReadFromFile("gost.private");
+
+                var rsa_decrypted = cipher.DoFinal(gost_enc_key);
+
+                private_gost_key = PrivateKeyFactory.DecryptKey(login.ToCharArray(), rsa_decrypted);
                 
-                var rsa_decrypted = cipher.DoFinal(rsa_enc_key);
-
-                var rsa_decrypted_string = Encoding.UTF8.GetString(rsa_decrypted);
-
-                string[] splits = rsa_decrypted_string.Split(new string[] {"<SPLIT>"},StringSplitOptions.None);
-                
-                Rsa_server = new RSACryptoServiceProvider();
-                Rsa_server.FromXmlString(splits[1]);
-
-                Rsa_device = new RSACryptoServiceProvider();
-                Rsa_device.FromXmlString(splits[0]);
-
                 cipher.Dispose();
                 return true;
             }
@@ -146,7 +135,7 @@ namespace FingerPass
                 Output += "Error in sending message. Exception: " + e.Message;
                 sslStreamRW.Disconnect("Error in sending message. Exception: " + e.Message);
                 return false;
-            }
+            } 
             
             if (!GetRSACipher())
             {
@@ -157,40 +146,36 @@ namespace FingerPass
             }
             cryptoObject.Dispose();
 
-            byte[] encrypted_from_server, encrypted_to_server;
-            if (!sslStreamRW.ReadBytes(out encrypted_from_server)) { Output = "Error\n" + sslStreamRW.DisconnectionReason; sslStreamRW.DisconnectNoMessage(); return false; }
+            byte[] sign_challenge, sign;
+            if (!sslStreamRW.ReadBytes(out sign_challenge)) { Output = "Error\n" + sslStreamRW.DisconnectionReason; sslStreamRW.DisconnectNoMessage(); return false; }
 
             try
             {
-                Output = new BigInteger(encrypted_from_server).ToString() + "\n";
-
-                byte[] decrypted_from_server = Rsa_device.Decrypt(encrypted_from_server, true);
-
-                Rsa_device.Dispose();
-
-                Output += new BigInteger(decrypted_from_server).ToString();
-
-                encrypted_to_server = Rsa_server.Encrypt(decrypted_from_server, true);
-
-                Rsa_server.Dispose();
+                ISigner signer = SignerUtilities.GetSigner("GOST3411withGOST3410");
+                signer.Init(true, private_gost_key);
+                signer.BlockUpdate(sign_challenge, 0, sign_challenge.Length);
+                sign = signer.GenerateSignature();
             }
             catch (Exception e)
             {
-                Output += "Device can't decrypt message. Exception: " + e.Message;
-                sslStreamRW.Disconnect("Device can't decrypt message. Exception: " + e.Message);
-                Rsa_server.Dispose();
-                Rsa_device.Dispose();
+                Output += "Device can't generate signature. Exception: " + e.Message;
+                sslStreamRW.Disconnect("Device can't generate signature. Exception: " + e.Message);
                 return false;
             }
 
-
-            if (!sslStreamRW.WriteBytes(encrypted_to_server)) { Output = "Error:\nCan't send data to server"; sslStreamRW.Disconnect(); return false; }
+            if (!sslStreamRW.WriteBytes(sign)) { Output = "Error:\nCan't send data to server"; sslStreamRW.Disconnect(); return false; }
 
             string result;
             if (!sslStreamRW.ReadString(out result)) { Output = "Error\n" + sslStreamRW.DisconnectionReason; sslStreamRW.Disconnect(); return false; }
 
-            if (result=="<APPROVED>") {
+            if (result == "<APPROVED>")
+            {
                 Output = "Authenticated!";
+                sslStreamRW.Disconnect();
+            }
+            else
+            {
+                Output = "Wrong token";
                 sslStreamRW.Disconnect();
             }
 
