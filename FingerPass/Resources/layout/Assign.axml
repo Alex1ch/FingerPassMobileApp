@@ -21,8 +21,7 @@
         android:id="@+id/LoginEdit"
         android:layout_marginTop="0.0dp"
         android:layout_gravity="center"
-        android:hint="login"
-        android:text="alexey" />
+        android:hint="Имя пользователя" />
     <EditText
         android:inputType="textPassword"
         android:layout_width="262.0dp"
@@ -30,8 +29,7 @@
         android:id="@+id/PasswordEdit"
         android:layout_gravity="center"
         android:lines="1"
-        android:hint="password"
-        android:text="123qweasd" />
+        android:hint="Пароль" />
     <Button
         android:id="@+id/SendAssign"
         android:layout_width="262.0dp"

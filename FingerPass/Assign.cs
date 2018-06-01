@@ -3,28 +3,22 @@ using Android.Widget;
 using Android.OS;
 using Android.Support.V4.Content;
 using Android;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-using System;
 using Android.Telephony;
 using Android.Support.V4.App;
-using System.IO;
-using Java.Security;
 using Android.Security.Keystore;
+using Android.Support.V4.Hardware.Fingerprint;
+using Java.Security;
 using Javax.Crypto;
-using System.Security.Cryptography;
+using System.Net.Sockets;
+using System;
+using System.IO;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Generators;
-using Android.Hardware.Fingerprints;
-using Android.Support.V4.Hardware.Fingerprint;
-using System.Security.Cryptography.X509Certificates;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Asn1;
 
 namespace FingerPass
 {
@@ -105,7 +99,7 @@ namespace FingerPass
             cipher.Init(Javax.Crypto.CipherMode.EncryptMode, key);
         }
 
-        string GenerateRSAKey()
+        string GenerateGOSTKey()
         {
             if (GetKeyGenerator())
             {
@@ -114,7 +108,7 @@ namespace FingerPass
                 X509Name CN = new X509Name("CN=" + login + "_cert");
 
                 Gost3410KeyPairGenerator keypairgen = new Gost3410KeyPairGenerator();
-                keypairgen.Init(new KeyGenerationParameters(new Org.BouncyCastle.Security.SecureRandom(new CryptoApiRandomGenerator()), 2048));
+                keypairgen.Init(new KeyGenerationParameters(new Org.BouncyCastle.Security.SecureRandom(new CryptoApiRandomGenerator()), 512));
 
                 AsymmetricCipherKeyPair keypair = keypairgen.GenerateKeyPair();
 
@@ -156,7 +150,7 @@ namespace FingerPass
 
             if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.ReadPhoneState) == Android.Content.PM.Permission.Denied)
             {
-                message = "Error:\nThis app require READ_PHONE_STATE permission to only get device IMEI";
+                message = "Приложению необходимо разрешение READ_PHONE_STATE только для получения IMEI";
                 return false;
             }
             
@@ -171,7 +165,7 @@ namespace FingerPass
                 }
                 catch
                 {
-                    message = "Error:\nCan't connect to server";
+                    message = "Ошибка:\nНе удалось подключиться к серверу";
                     client.Close();
                     return false;
                 }
@@ -180,7 +174,7 @@ namespace FingerPass
                 if (!sslStreamRw.WriteString("<HANDSHAKE>")) return false;
                 if (!sslStreamRw.WriteString(login)) return false;
                 if (!sslStreamRw.WriteString(Build.Brand + " " + Build.Model)) return false;
-                if (!sslStreamRw.WriteString(((TelephonyManager)GetSystemService(TelephonyService)).DeviceId)) { message = "Error:\nHaven't permissions"; return false; }//((TelephonyManager)GetSystemService(TelephonyService)).DeviceId)
+                if (!sslStreamRw.WriteString(((TelephonyManager)GetSystemService(TelephonyService)).DeviceId)) { message = "Ошибка:\nНет доступа к IMEI"; return false; }//((TelephonyManager)GetSystemService(TelephonyService)).DeviceId)
 
                 if (!sslStreamRw.WriteString(password)) return false;
                 
@@ -188,12 +182,12 @@ namespace FingerPass
 
                 try
                 {
-                    device_open_key = GenerateRSAKey();
+                    device_open_key = GenerateGOSTKey();
                 }
                 catch(Exception e)
                 {
-                    message = "Error:\nCan't generate RSA key\nException: "+e.Message+"\n"+e.InnerException;
-                    sslStreamRw.Disconnect("Device can't generate RSA key");
+                    message = "Ошибка:\nНе удалось сгенерировать пару ключей\nException: " + e.Message+"\n"+e.InnerException;
+                    sslStreamRw.Disconnect("Device can't generate key");
                     return false;
                 }
                 
@@ -203,16 +197,16 @@ namespace FingerPass
                 }
                 else
                 {
-                    message = "Error:\nCan't generate RSA key";
-                    sslStreamRw.Disconnect("Device can't generate RSA key");
+                    message = "Ошибка:\nНе удалось сгенерировать пару ключей";
+                    sslStreamRw.Disconnect("Device can't generate key");
                     return false;
                 };
                 
-                if (!sslStreamRw.ReadString(out result)) { message = "Error:\n" + sslStreamRw.DisconnectionReason; return false; }
+                if (!sslStreamRw.ReadString(out result)) { message = "Ошибка:\n" + sslStreamRw.DisconnectionReason; return false; }
                 if (result == "<ACCEPTED>")
                 {
                     string restore;
-                    if (!sslStreamRw.ReadString(out restore)) { message = "Error:\n" + sslStreamRw.DisconnectionReason; return false; }
+                    if (!sslStreamRw.ReadString(out restore)) { message = "Ошибка:\n" + sslStreamRw.DisconnectionReason; return false; }
                     
                     string filename = "username";
                     var documentsPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
@@ -225,7 +219,7 @@ namespace FingerPass
                         sw.Flush();
                     }
                     
-                    message = "Device is assigned\nRestore code is:\n"+restore;
+                    message = "Устройство зарегистрировано\nСохраните этот код восстановления в надежном месте:\n"+restore;
                     sslStreamRw.Disconnect();
                     
                     return true;
@@ -238,7 +232,7 @@ namespace FingerPass
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error reading message:\n" + e.Message);
+                Console.WriteLine("Ошибка чтения с сервера\nException:\n" + e.Message);
                 if (e.InnerException != null)
                 {
                     Console.WriteLine("Inner exception: {0}", e.InnerException.Message);
@@ -259,6 +253,10 @@ namespace FingerPass
             SetContentView(Resource.Layout.Assign);
 
 
+            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.ReadPhoneState) == Android.Content.PM.Permission.Denied)
+            {
+                ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.ReadPhoneState }, 1);
+            }
 
             // Get our button from the layout resource,
             // and attach an event to it
@@ -271,10 +269,7 @@ namespace FingerPass
 
             string output = "";
             info.Text += output;
-            info.Text += "\nDevice is ready!";
-
-            button.Text = "Assign device";
-
+            
             button.Click += delegate {
                 if (active) return;
                 active = true;
@@ -295,7 +290,7 @@ namespace FingerPass
                     
                 FingerprintManagerCompat.CryptoObject crypto = new FingerprintManagerCompat.CryptoObject(cipher);
 
-                info.Text = "Place your fingertip on the fingerprint scanner to verify your identity";
+                info.Text = "Приложите палец к сканеру отпечатка пальцев, чтобы подтвердить свою личность";
                 fingerprintManager.Authenticate(crypto, 0, cancellationSignal, authenticationCallback, null);
 
                 cipher = crypto.Cipher;

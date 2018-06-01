@@ -1,19 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Runtime;
+﻿using System.Threading.Tasks;
 using Android.Support.V4.Hardware.Fingerprint;
-using Android.Util;
-using Android.Views;
-using Android.Widget;
 using Java.Lang;
-using Javax.Crypto;
-using static Android.Hardware.Fingerprints.FingerprintManager;
 
 namespace FingerPass
 {
@@ -28,7 +15,7 @@ namespace FingerPass
 
         public override void OnAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result)
         {
-            assignActivity.RunOnUiThread(() => { assignActivity.info.Text = "Identity verified, performing assign..."; });
+            assignActivity.RunOnUiThread(() => { assignActivity.info.Text = "Личность подтверждена, \nвыполняется регистрация..."; });
             Task.Factory.StartNew(() => {
                 string message;
                 if (assignActivity.Assign(out message))
@@ -43,19 +30,19 @@ namespace FingerPass
             // Report the error to the user. Note that if the user canceled the scan,
             // this method will be called and the errMsgId will be FingerprintState.ErrorCanceled.
             assignActivity.Active = false;
-            assignActivity.info.Text = "Fingerprint authentication failed";
+            assignActivity.info.Text = "Ошибка при распознавании отпечатка пальца,\nпопробуйте позже";
         }
 
         public override void OnAuthenticationFailed()
         {
             // Tell the user that the fingerprint was not recognized.
-            assignActivity.info.Text = "Fingerprint wasn't recognize";
+            assignActivity.info.Text = "Не удалось распознать отпечаток пальца";
         }
 
         public override void OnAuthenticationHelp(int helpMsgId, ICharSequence helpString)
         {
             // Notify the user that the scan failed and display the provided hint.
-            assignActivity.info.Text = "Fingerprint scan failed";
+            assignActivity.info.Text = "Не удалось сканировать отпечаток пальца";
         }
     }
 }

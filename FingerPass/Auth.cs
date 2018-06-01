@@ -1,31 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
-
 using Android.App;
-using Android.Content;
 using Android.OS;
-using Android.Runtime;
-using Android.Util;
-using Android.Views;
 using Android.Widget;
-using Java.Math;
 using Java.Security;
 using Javax.Crypto;
 using Javax.Crypto.Spec;
-using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Encodings;
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Security;
-using System.Threading.Tasks;
-using Android.Hardware.Fingerprints;
 using Android.Support.V4.Hardware.Fingerprint;
-using static Android.Hardware.Fingerprints.FingerprintManager;
-using Org.BouncyCastle.Asn1;
 
 namespace FingerPass
 {
@@ -62,7 +46,7 @@ namespace FingerPass
             }
             catch
             {
-                throw new Exception("Can't read IV from file");
+                throw new Exception("Не удается прочесть файл");
             }
             return iv;
         }
@@ -73,7 +57,7 @@ namespace FingerPass
             keyStore.Load(null);
             if (!keyStore.IsKeyEntry(keyStoreAESReplace + login))
             {
-                Output = "Store doesn't contain key";
+                Output = "Ошибка при получении ключа, попробуйте зарегистрировать устройство повторно";
                 return null;
             }
 
@@ -104,7 +88,7 @@ namespace FingerPass
                 return true;
             }
             catch(Exception e){
-                Output = "Error in getting cipher object, try to reassign device\nException"+e.Message + "\n" + e.InnerException;
+                Output = "Ошибка при получении ключа, попробуйте зарегистрировать устройство повторно\nException"+e.Message + "\n" + e.InnerException;
                 return false;
             }
         }
@@ -112,6 +96,7 @@ namespace FingerPass
 
         public bool Authenticate() {
             TcpClient client = new TcpClient();
+            client.SendTimeout = 10000;
 
             try
             {
@@ -119,7 +104,7 @@ namespace FingerPass
             }
             catch
             {
-                Output = "Error:\nCan't connect to server";
+                Output = "Ошибка:\nНет подключения к серверу";
                 client.Close();
                 return false;
             }
@@ -132,23 +117,23 @@ namespace FingerPass
             }
             catch (Exception e)
             {
-                Output += "Error in sending message. Exception: " + e.Message;
+                Output += "Ошибка при отправке данных. Exception: " + e.Message;
                 sslStreamRW.Disconnect("Error in sending message. Exception: " + e.Message);
                 return false;
-            } 
-            
+            }
+
+            byte[] sign_challenge, sign;
+            if (!sslStreamRW.ReadBytes(out sign_challenge)) { Output = "Ошибка:\n" + sslStreamRW.DisconnectionReason; sslStreamRW.DisconnectNoMessage(); return false; }
+
             if (!GetRSACipher())
             {
-                Output = "Can't decrypt Key";
+                Output = "Не удалось расшифровать ключ";
                 sslStreamRW.Disconnect("Device can't decrypt key");
                 cryptoObject.Dispose();
                 return false;
             }
             cryptoObject.Dispose();
-
-            byte[] sign_challenge, sign;
-            if (!sslStreamRW.ReadBytes(out sign_challenge)) { Output = "Error\n" + sslStreamRW.DisconnectionReason; sslStreamRW.DisconnectNoMessage(); return false; }
-
+            
             try
             {
                 ISigner signer = SignerUtilities.GetSigner("GOST3411withGOST3410");
@@ -158,24 +143,24 @@ namespace FingerPass
             }
             catch (Exception e)
             {
-                Output += "Device can't generate signature. Exception: " + e.Message;
+                Output += "Устройство не смогло сгенерировать цифровую подпись. Exception: " + e.Message;
                 sslStreamRW.Disconnect("Device can't generate signature. Exception: " + e.Message);
                 return false;
             }
 
-            if (!sslStreamRW.WriteBytes(sign)) { Output = "Error:\nCan't send data to server"; sslStreamRW.Disconnect(); return false; }
+            if (!sslStreamRW.WriteBytes(sign)) { Output = "Ошибка:\nНевозможно отправить данные на сервер"; sslStreamRW.Disconnect(); return false; }
 
             string result;
-            if (!sslStreamRW.ReadString(out result)) { Output = "Error\n" + sslStreamRW.DisconnectionReason; sslStreamRW.Disconnect(); return false; }
+            if (!sslStreamRW.ReadString(out result)) { Output = "Ошибка:\n" + sslStreamRW.DisconnectionReason; sslStreamRW.Disconnect(); return false; }
 
             if (result == "<APPROVED>")
             {
-                Output = "Authenticated!";
+                Output = "Аутентификация прошла успешно!";
                 sslStreamRW.Disconnect();
             }
             else
             {
-                Output = "Wrong token";
+                Output = "Неверная цифровая подпись";
                 sslStreamRW.Disconnect();
             }
 
@@ -208,7 +193,7 @@ namespace FingerPass
                 }
                 catch
                 {
-                    Output = "Can't parse username, probably, device not assign";
+                    Output = "Устройство не зарегистрировано";
                     AuthButton.Activated = false;
                     return;
                 }
@@ -223,12 +208,12 @@ namespace FingerPass
 
             if (cipher == null)
             {
-                Message.Text = "Can't get aes key cipher";
+                Message.Text = "Не удалось получть AES криптообъект";
             }
 
             cryptoObject = new FingerprintManagerCompat.CryptoObject(cipher);
 
-            Message.Text = "Place your fingertip on the fingerprint scanner to verify your identity";
+            Message.Text = "Приложите палец к сканеру отпечатка пальцев, чтобы подтвердить свою личность";
             fingerprintManager.Authenticate(cryptoObject, 0, cancellationSignal, authenticationCallback, null);
 
             AuthButton.Click += delegate {
@@ -244,7 +229,7 @@ namespace FingerPass
                     }
                     catch
                     {
-                        Output = "Can't parse username, probably, device not assign";
+                        Output = "Устройство не зарегистрировано";
                         return;
                     }
                 }
@@ -258,12 +243,12 @@ namespace FingerPass
 
                 if (cipher == null)
                 {
-                    Message.Text = "Can't get aes key cipher";
+                    Message.Text = "Не удалось получть AES криптообъект";
                 }
 
                 cryptoObject = new FingerprintManagerCompat.CryptoObject(cipher);
 
-                Message.Text = "Place your fingertip on the fingerprint scanner to verify your identity";
+                Message.Text = "Приложите палец к сканеру отпечатка пальцев, чтобы подтвердить свою личность";
                 fingerprintManager.Authenticate(cryptoObject, 0, cancellationSignal, authenticationCallback, null);
             };
         }

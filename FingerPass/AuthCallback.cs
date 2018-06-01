@@ -1,19 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Runtime;
+﻿using System.Threading.Tasks;
 using Android.Support.V4.Hardware.Fingerprint;
-using Android.Util;
-using Android.Views;
-using Android.Widget;
 using Java.Lang;
-using Javax.Crypto;
-using static Android.Hardware.Fingerprints.FingerprintManager;
 
 namespace FingerPass
 {
@@ -28,7 +15,7 @@ namespace FingerPass
 
         public override void OnAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result)
         {
-            authActivity.RunOnUiThread(()=> { authActivity.Message.Text = "Identity verified, performing auth..."; });
+            authActivity.RunOnUiThread(()=> { authActivity.Message.Text = "Личность подтверждена, \nвыполняется аутентификация..."; });
             Task.Factory.StartNew(() => {
                 if (authActivity.Authenticate())
                 {
@@ -45,20 +32,20 @@ namespace FingerPass
             // this method will be called and the errMsgId will be FingerprintState.ErrorCanceled.
             authActivity.Active = false;
             authActivity.AuthButton.Enabled = true;
-            authActivity.RunOnUiThread(() => { authActivity.Message.Text = "Fingerprint authentication failed"; });
+            authActivity.RunOnUiThread(() => { authActivity.Message.Text = "Ошибка при распознавании отпечатка пальца,\nпопробуйте позже"; });
         }
 
         public override void OnAuthenticationFailed()
         {
             // Tell the user that the fingerprint was not recognized.
-            authActivity.RunOnUiThread(() => { authActivity.Message.Text = "Fingerprint wasn't recognize"; });
+            authActivity.RunOnUiThread(() => { authActivity.Message.Text = "Не удалось распознать отпечаток пальца"; });
         }
 
         public override void OnAuthenticationHelp(int helpMsgId, ICharSequence helpString)
         {
             // Notify the user that the scan failed and display the provided hint.
             authActivity.RunOnUiThread(() => {
-                authActivity.Message.Text = "Fingerprint scan failed";
+                authActivity.Message.Text = "Не удалось сканировать отпечаток пальца";
             });
         }
     }

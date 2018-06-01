@@ -1,1 +1,1 @@
-<resources><string name="auth">Authenticate</string><string name="assign">Assign device</string><string name="close">Close</string><string name="app_name">FingerPass</string><string name="retry">Retry</string></resources>
+<resources><string name="auth">Аутентификация</string><string name="assign">Регистрация</string><string name="close">Закрыть</string><string name="app_name">FingerPass</string><string name="retry">Попробовать снова</string></resources>

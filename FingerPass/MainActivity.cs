@@ -2,23 +2,11 @@
 using Android.Widget;
 using Android.OS;
 using Android.Content;
-using Android.Hardware.Fingerprints;
-using Android.Support.V4;
 using Android.Support.V4.Hardware.Fingerprint;
 using Android.Support.V4.Content;
 using Android;
-using System.Net.Security;
 using System.Net.Sockets;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System;
-using Android.Telephony;
-using Android.Content.PM;
-using Android.Support.V4.App;
 using System.IO;
-using Java.Security;
-using Android.Util;
 [assembly: Application(Theme= "@android:style/Theme.Material.Light.DarkActionBar")]
 
 namespace FingerPass
@@ -26,9 +14,6 @@ namespace FingerPass
     [Activity(Label = "FingerPass", MainLauncher = true, Icon = "@mipmap/icon")]
     public class MainActivity : Activity
     {
-        TcpClient client;
-        bool assigned;
-
         public bool haveFPPermission(Context context) {
             Android.Content.PM.Permission permissionResult = ContextCompat.CheckSelfPermission(context, Manifest.Permission.UseFingerprint);
             if (permissionResult == Android.Content.PM.Permission.Granted)
@@ -93,7 +78,7 @@ namespace FingerPass
             string output = "";
             if (isReady(ref output))
             {
-                info.Text += "\nDevice is ready!";
+                info.Text += "\nУстройство готово к использованию!";
 
 
                 string filename = "username";
@@ -106,26 +91,26 @@ namespace FingerPass
                     {
                         StreamReader sr = new StreamReader(fs);
                         string login = sr.ReadLine();
-                        info.Text += "\nLogin: " + login;
+                        info.Text += "\nПользователь: " + login;
                         if (login.Length > 1)
                         {
-                            assigned = true;
-                            info.Text += "\nAssigned";
-                            assignButton.Text = "Reassign device";
+                            info.Text += "\nЗарегистрировано";
+                            assignButton.Text = "Зарегистрировать повторно";
+                            auth.Enabled = true;
                         }
                         else
                         {
-                            assigned = false;
-                            info.Text += "\nNot assigned";
-                            assignButton.Text = "Assign device";
+                            info.Text += "\nНе зарегистрировано";
+                            assignButton.Text = "Зарегистрировать";
+                            auth.Enabled = false;
                         }
                     }
                 }
                 catch
                 {
-                    assigned = false;
-                    info.Text += "\nNot assigned";
-                    assignButton.Text = "Assign device";
+                    info.Text += "\nНе зарегистрировано";
+                    assignButton.Text = "Зарегистрировать";
+                    auth.Enabled = false;
                 }
 
                 assignButton.Click += delegate {
@@ -141,7 +126,7 @@ namespace FingerPass
             else
             {
                 info.Text += output;
-                info.Text += "\nDevice is NOT ready!";
+                info.Text += "\nУстройство не готово к использованию!";
 
                 assignButton.Text = "@string/close";
 
@@ -157,49 +142,49 @@ namespace FingerPass
             base.OnCreate(savedInstanceState);
             
             SetContentView(Resource.Layout.Main);
-            
-            
+
+
             Button assignButton = FindViewById<Button>(Resource.Id.Assign);
             Button auth = FindViewById<Button>(Resource.Id.Auth);
             TextView info = FindViewById<TextView>(Resource.Id.InfoView);
-
-            info.Text = "";
+            
 
             string output = "";
             if (isReady(ref output))
             {
-                info.Text += "\nDevice is ready!";
-                
+                info.Text = "\nУстройство готово к использованию!";
+
 
                 string filename = "username";
                 var documentsPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
                 var filePath = Path.Combine(documentsPath, filename);
-                
+
                 try
                 {
-                    using (FileStream fs = File.Open(filePath, FileMode.Open)) {
+                    using (FileStream fs = File.Open(filePath, FileMode.Open))
+                    {
                         StreamReader sr = new StreamReader(fs);
                         string login = sr.ReadLine();
-                        info.Text += "\nLogin: " + login;
-                        if (login.Length>1)
+                        info.Text += "\nПользователь: " + login;
+                        if (login.Length > 1)
                         {
-                            assigned = true;
-                            info.Text += "\nAssigned";
-                            assignButton.Text = "Reassign device";
+                            info.Text += "\nЗарегистрировано";
+                            assignButton.Text = "Зарегистрировать повторно";
+                            auth.Enabled = true;
                         }
                         else
                         {
-                            assigned = false;
-                            info.Text += "\nNot assigned";
-                            assignButton.Text = "Assign device";
+                            info.Text += "\nНе зарегистрировано";
+                            assignButton.Text = "Зарегистрировать";
+                            auth.Enabled = false;
                         }
                     }
                 }
                 catch
                 {
-                    assigned = false;
-                    info.Text += "\nNot assigned";
-                    assignButton.Text = "Assign device";
+                    info.Text += "\nНе зарегистрировано";
+                    assignButton.Text = "Зарегистрировать";
+                    auth.Enabled = false;
                 }
 
                 assignButton.Click += delegate {
@@ -215,7 +200,7 @@ namespace FingerPass
             else
             {
                 info.Text += output;
-                info.Text += "\nDevice is NOT ready!";
+                info.Text += "\nУстройство не готово к использованию!";
 
                 assignButton.Text = "@string/close";
 
