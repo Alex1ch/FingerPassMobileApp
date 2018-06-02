@@ -158,7 +158,7 @@ namespace FingerPass
             {
                 string result,  device_open_key = "=====DEVICE RSA TEST KEY=====";
                 TcpClient client = new TcpClient();
-                client.SendTimeout = 10000;
+                client.SendTimeout = 3000;
                 try
                 {
                     client.Connect("fingerpass.ru", 6284);

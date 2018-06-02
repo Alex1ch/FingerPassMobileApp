@@ -11,14 +11,15 @@ public final class R {
     public static final class attr {
     }
     public static final class id {
-        public static final int Assign=0x7f050006;
-        public static final int Auth=0x7f050007;
-        public static final int InfoView=0x7f050000;
-        public static final int LoginEdit=0x7f050001;
-        public static final int Message=0x7f050004;
-        public static final int PasswordEdit=0x7f050002;
-        public static final int SendAssign=0x7f050003;
-        public static final int Send_auth=0x7f050005;
+        public static final int Assign=0x7f050007;
+        public static final int Auth=0x7f050008;
+        public static final int InfoView=0x7f050001;
+        public static final int LoginEdit=0x7f050002;
+        public static final int Message=0x7f050005;
+        public static final int PasswordEdit=0x7f050003;
+        public static final int SendAssign=0x7f050004;
+        public static final int Send_auth=0x7f050006;
+        public static final int textView1=0x7f050000;
     }
     public static final class layout {
         public static final int assign=0x7f030000;

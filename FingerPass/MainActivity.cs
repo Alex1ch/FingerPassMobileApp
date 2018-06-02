@@ -30,33 +30,33 @@ namespace FingerPass
         public bool isReady(ref string output) {
             if (FingerprintManagerCompat.From(this).IsHardwareDetected)
             {
-                output += "Device is compatable,";
+                output += "Устройство совместимо";
                 if (isScreenLocked())
                 {
-                    output += "\nscreen locked,";
+                    output += "\nЭкран заблокирован";
                     if (FingerprintManagerCompat.From(this).HasEnrolledFingerprints)
                     {
-                        output += "\nhave fingerprints";
+                        output += "\nЕсть зарегистрированные отпечатки";
                         if (haveFPPermission(this))
                         {
-                            output += "\nand permissions granted.";
+                            output += "\nРазрешения получены";
                             return true;
                         }
                         else
                         {
-                            output += "\nand permissions NOT granted";
+                            output += "\nНет разрешений";
                         }
                     }
-                    else output += "\n but have NOT fingerprints";
+                    else output += "\nНет зарегистрированных отпечатков";
                 }
                 else
                 {
-                    output += "\nbut screen NOT locked";
+                    output += "\nЭкран без блокировки";
                 }
             }
             else
             {
-                output = "Device is NOT compatable!";
+                output = "Устройство не совместимо";
             }
             return false;
         }
@@ -67,8 +67,7 @@ namespace FingerPass
             base.OnResume();
 
             SetContentView(Resource.Layout.Main);
-
-
+            
             Button assignButton = FindViewById<Button>(Resource.Id.Assign);
             Button auth = FindViewById<Button>(Resource.Id.Auth);
             TextView info = FindViewById<TextView>(Resource.Id.InfoView);
@@ -78,6 +77,8 @@ namespace FingerPass
             string output = "";
             if (isReady(ref output))
             {
+                auth.Visibility = Android.Views.ViewStates.Visible;
+                auth.Enabled = true;
                 info.Text += "\nУстройство готово к использованию!";
 
 
@@ -126,9 +127,11 @@ namespace FingerPass
             else
             {
                 info.Text += output;
-                info.Text += "\nУстройство не готово к использованию!";
 
-                assignButton.Text = "@string/close";
+                auth.Visibility = Android.Views.ViewStates.Invisible;
+                auth.Enabled = false;
+                assignButton.Text = "Закрыть";
+
 
                 assignButton.Click += delegate {
                     Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
@@ -152,6 +155,8 @@ namespace FingerPass
             string output = "";
             if (isReady(ref output))
             {
+                auth.Visibility = Android.Views.ViewStates.Visible;
+                auth.Enabled = true;
                 info.Text = "\nУстройство готово к использованию!";
 
 
@@ -200,9 +205,10 @@ namespace FingerPass
             else
             {
                 info.Text += output;
-                info.Text += "\nУстройство не готово к использованию!";
 
-                assignButton.Text = "@string/close";
+                auth.Visibility = Android.Views.ViewStates.Invisible;
+                auth.Enabled = false;
+                assignButton.Text = "Закрыть";
 
                 assignButton.Click += delegate {
                     Android.OS.Process.KillProcess(Android.OS.Process.MyPid());

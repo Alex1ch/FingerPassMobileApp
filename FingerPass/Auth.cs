@@ -96,7 +96,7 @@ namespace FingerPass
 
         public bool Authenticate() {
             TcpClient client = new TcpClient();
-            client.SendTimeout = 10000;
+            client.SendTimeout = 3000;
 
             try
             {
@@ -178,6 +178,7 @@ namespace FingerPass
 
             AuthButton = FindViewById<Button>(Resource.Id.Send_auth);
             Message = FindViewById<TextView>(Resource.Id.Message);
+            AuthButton.Visibility = Android.Views.ViewStates.Invisible;
             AuthButton.Enabled = false;
 
             string filename = "username";
@@ -218,7 +219,7 @@ namespace FingerPass
 
             AuthButton.Click += delegate {
                 if (active) return;
-                AuthButton.Enabled = false;
+                AuthButton.Visibility = Android.Views.ViewStates.Invisible;
 
                 using (FileStream fs = File.Open(filePath, FileMode.Open))
                 {

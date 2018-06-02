@@ -20,9 +20,13 @@ namespace FingerPass
                 if (authActivity.Authenticate())
                 {
                 }
-                authActivity.RunOnUiThread(() => { authActivity.Message.Text = authActivity.Output; });
+                authActivity.RunOnUiThread(() => {
+                    authActivity.Message.Text = authActivity.Output;
+                    authActivity.AuthButton.Visibility = Android.Views.ViewStates.Visible;
+                    authActivity.AuthButton.Enabled = true;
+                });
                 authActivity.Active = false;
-                authActivity.AuthButton.Enabled = true;
+
             });
         }
 
@@ -31,8 +35,11 @@ namespace FingerPass
             // Report the error to the user. Note that if the user canceled the scan,
             // this method will be called and the errMsgId will be FingerprintState.ErrorCanceled.
             authActivity.Active = false;
-            authActivity.AuthButton.Enabled = true;
-            authActivity.RunOnUiThread(() => { authActivity.Message.Text = "Ошибка при распознавании отпечатка пальца,\nпопробуйте позже"; });
+            authActivity.RunOnUiThread(() => {
+                authActivity.AuthButton.Visibility = Android.Views.ViewStates.Visible;
+                authActivity.AuthButton.Enabled = true;
+                authActivity.Message.Text = "Ошибка при распознавании отпечатка пальца,\nпопробуйте позже";
+            });
         }
 
         public override void OnAuthenticationFailed()
